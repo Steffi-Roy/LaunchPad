@@ -1,0 +1,1056 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LaunchPad AI — Stop guessing. Start launching.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+<style>
+/* ── RESET & BASE ─────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:        #0a0a0c;
+  --bg2:       #13131a;
+  --bg3:       #1a1a22;
+  --border:    #2a2a34;
+  --border2:   #3a3a48;
+  --purple:    #c084fc;
+  --purple2:   #a855f7;
+  --purple3:   #7F77DD;
+  --teal:      #5DCAA5;
+  --amber:     #EF9F27;
+  --pink:      #D4537E;
+  --text:      #e8e8f0;
+  --muted:     #4a4a5a;
+  --muted2:    #2e2e3a;
+  --mono:      'Space Mono', monospace;
+  --display:   'Syne', sans-serif;
+}
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+button { cursor: pointer; font-family: var(--mono); }
+input, textarea { font-family: var(--mono); }
+
+/* ── SCROLLBAR ─────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── STARS BACKGROUND ──────────────────────────── */
+.stars {
+  position: fixed; inset: 0; pointer-events: none; z-index: 0;
+  overflow: hidden;
+}
+.star {
+  position: absolute; border-radius: 50%; background: white;
+  animation: starTwinkle var(--d) var(--delay) ease-in-out infinite;
+}
+@keyframes starTwinkle { 0%,100%{opacity:0.08} 50%{opacity:var(--peak)} }
+
+/* ── PAGE SYSTEM ───────────────────────────────── */
+.page { display: none; position: relative; z-index: 1; }
+.page.active { display: flex; }
+
+/* ══════════════════════════════════════════════════
+   INTRO / SPLASH
+══════════════════════════════════════════════════ */
+#page-intro {
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px 60px;
+}
+.intro-scene { display: none; flex-direction: column; align-items: center; width: 100%; max-width: 520px; }
+.intro-scene.active { display: flex; animation: sceneIn 0.5s ease; }
+@keyframes sceneIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.scene-tag {
+  font-size: 10px; letter-spacing: 3px; color: var(--muted2);
+  margin-bottom: 20px; font-family: var(--mono);
+}
+.intro-title {
+  font-family: var(--display); font-size: clamp(26px, 5vw, 36px); font-weight: 800;
+  color: var(--purple); letter-spacing: -1px; text-align: center;
+  opacity: 0; transition: opacity 0.7s ease;
+}
+.intro-title.show { opacity: 1; }
+.intro-sub {
+  font-size: 12px; color: var(--muted); margin-top: 10px; text-align: center;
+  min-height: 20px; display: flex; align-items: center; justify-content: center;
+}
+.typed { color: var(--muted); }
+.cur { display: inline-block; width: 7px; height: 13px; background: var(--purple); margin-left: 1px; vertical-align: middle; animation: blink 1s step-end infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ── INTRO DOTS & CONTROLS ─────────────────────── */
+.intro-controls {
+  position: fixed; bottom: 28px; left: 0; right: 0;
+  display: flex; flex-direction: column; align-items: center; gap: 10px; z-index: 10;
+}
+.intro-dots { display: flex; gap: 10px; }
+.idot {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--border2);
+  cursor: pointer; transition: background 0.3s, transform 0.2s;
+}
+.idot.on { background: var(--purple); transform: scale(1.4); }
+.skip-link {
+  font-size: 10px; color: var(--muted2); background: none; border: none;
+  letter-spacing: 1px; transition: color 0.2s;
+}
+.skip-link:hover { color: var(--purple); }
+.pause-label { font-size: 9px; color: transparent; letter-spacing: 2px; transition: color 0.3s; }
+.pause-label.show { color: var(--muted2); }
+
+/* ── SCENE SVGS ────────────────────────────────── */
+.scene-svg-wrap { width: 100%; display: flex; justify-content: center; margin-bottom: 4px; }
+@keyframes floatSlow { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-7px)} }
+@keyframes rocketHover { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+@keyframes flameFlicker1 { 0%,100%{transform:scaleY(1);opacity:.95} 50%{transform:scaleY(1.4);opacity:1} }
+@keyframes flameFlicker2 { 0%,100%{transform:scaleY(1)} 33%{transform:scaleY(.75)} 66%{transform:scaleY(1.25)} }
+@keyframes scanPulse { 0%,100%{opacity:.12} 50%{opacity:.5} }
+@keyframes notifPop { 0%{opacity:0;transform:scale(.75) translateY(8px)} 70%{transform:scale(1.05)} 100%{opacity:1;transform:scale(1)} }
+@keyframes docReveal { 0%{opacity:0;transform:translateY(14px)} 100%{opacity:1;transform:translateY(0)} }
+@keyframes checkDraw { 0%{stroke-dashoffset:40} 100%{stroke-dashoffset:0} }
+
+/* ══════════════════════════════════════════════════
+   WIZARD SHELL
+══════════════════════════════════════════════════ */
+#page-wizard {
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── TOPBAR ────────────────────────────────────── */
+.topbar {
+  width: 100%; display: flex; justify-content: space-between; align-items: center;
+  padding: 14px 32px; border-bottom: 1px dashed var(--border);
+  position: sticky; top: 0; background: rgba(10,10,12,0.92); backdrop-filter: blur(8px);
+  z-index: 100;
+}
+.logo {
+  font-family: var(--display); font-size: 16px; font-weight: 800;
+  color: var(--purple); display: flex; align-items: center; gap: 10px;
+}
+.logo-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--purple); animation: blink 2s ease-in-out infinite; }
+.theme-btn {
+  font-size: 11px; color: var(--muted); background: var(--bg2);
+  border: 1px dashed var(--border2); padding: 6px 14px; letter-spacing: 1px;
+  border-radius: 4px; transition: all 0.2s;
+}
+.theme-btn:hover { color: var(--purple); border-color: var(--purple); }
+
+/* ── STEP TABS ─────────────────────────────────── */
+.step-tabs {
+  width: 100%; display: flex; border-bottom: 1px dashed var(--border);
+  overflow-x: auto;
+}
+.step-tab {
+  flex: 1; min-width: 80px; padding: 12px 8px; text-align: center;
+  font-size: 10px; color: var(--muted2); letter-spacing: 1px;
+  border-right: 1px dashed var(--border); background: none; border-top: none; border-left: none; border-bottom: none;
+  cursor: pointer; transition: all 0.2s; position: relative;
+}
+.step-tab:last-child { border-right: none; }
+.step-tab .step-num { display: block; font-size: 9px; color: var(--muted2); margin-bottom: 3px; }
+.step-tab.done { color: var(--teal); }
+.step-tab.done .step-num { color: var(--teal); }
+.step-tab.active { color: var(--purple); background: rgba(192,132,252,0.04); }
+.step-tab.active .step-num { color: var(--purple); }
+.step-tab.active::after {
+  content: ''; position: absolute; bottom: -1px; left: 0; right: 0;
+  height: 2px; background: var(--purple);
+}
+
+/* ── WIZARD CONTENT ────────────────────────────── */
+.wizard-body {
+  width: 100%; max-width: 720px; margin: 0 auto;
+  padding: 40px 32px 120px;
+}
+.wiz-page { display: none; animation: sceneIn 0.4s ease; }
+.wiz-page.active { display: block; }
+
+/* ── PAGE HERO ─────────────────────────────────── */
+.page-hero { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 32px; }
+.hero-icon {
+  width: 48px; height: 48px; flex-shrink: 0;
+  border: 1.5px dashed var(--purple3); display: flex; align-items: center; justify-content: center;
+}
+.hero-icon svg { width: 24px; height: 24px; }
+.hero-title {
+  font-family: var(--display); font-size: 24px; font-weight: 700;
+  color: var(--text); line-height: 1.15;
+}
+.hero-sub { font-size: 11px; color: var(--muted); margin-top: 5px; letter-spacing: 1px; }
+
+/* ── INPUTS ────────────────────────────────────── */
+.field { margin-bottom: 24px; }
+.field-label { font-size: 11px; color: var(--muted); letter-spacing: 2px; display: block; margin-bottom: 8px; }
+.field input, .field textarea {
+  width: 100%; background: var(--bg2); border: 1px solid var(--border);
+  border-bottom: 2px solid var(--purple3); color: var(--text);
+  padding: 12px 14px; font-size: 13px; outline: none;
+  transition: border-color 0.2s; resize: none; border-radius: 0;
+}
+.field input:focus, .field textarea:focus { border-bottom-color: var(--purple); }
+.field input::placeholder, .field textarea::placeholder { color: var(--muted2); }
+
+/* ── COMPETITOR CARDS ──────────────────────────── */
+.comp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 24px; }
+.comp-card {
+  background: var(--bg2); border: 1px solid var(--border); border-bottom: 3px solid var(--border2);
+  padding: 14px;
+}
+.comp-name { font-family: var(--display); font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+.comp-desc { font-size: 11px; color: var(--muted); line-height: 1.6; }
+.comp-tag {
+  display: inline-block; margin-top: 10px; font-size: 11px; padding: 3px 10px;
+  border: 1px dashed var(--border2); color: var(--muted);
+}
+
+/* ── ANGLE BOX ─────────────────────────────────── */
+.angle-box {
+  border: 1.5px dashed var(--purple3); padding: 16px 18px;
+  background: rgba(127,119,221,0.04); margin-bottom: 24px; position: relative;
+}
+.angle-box::before, .angle-box::after,
+.angle-box .corner-b::before, .angle-box .corner-b::after {
+  content: ''; position: absolute; width: 8px; height: 8px; border-color: var(--purple3); border-style: solid;
+}
+.angle-box::before { top: -2px; left: -2px; border-width: 2px 0 0 2px; }
+.angle-box::after { top: -2px; right: -2px; border-width: 2px 2px 0 0; }
+.angle-box .corner-b::before { bottom: -2px; left: -2px; border-width: 0 0 2px 2px; }
+.angle-box .corner-b::after { bottom: -2px; right: -2px; border-width: 0 2px 2px 0; }
+.angle-label { font-size: 10px; color: var(--purple3); letter-spacing: 2px; margin-bottom: 8px; }
+.angle-text { font-size: 13px; color: var(--purple); line-height: 1.7; }
+.angle-input {
+  width: 100%; background: transparent; border: none; border-bottom: 1px dashed var(--purple3);
+  color: var(--purple); font-family: var(--mono); font-size: 13px; padding: 4px 0; outline: none; margin-top: 8px;
+}
+
+/* ── TAG CLOUD ─────────────────────────────────── */
+.tag-section { margin-bottom: 24px; }
+.tag-section-label { font-size: 11px; color: var(--muted); letter-spacing: 2px; margin-bottom: 12px; display: block; }
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 8px; }
+.tag {
+  font-size: 12px; padding: 6px 16px; cursor: pointer;
+  border: 1.5px dashed var(--border2); color: var(--muted); background: transparent;
+  transition: all 0.15s;
+}
+.tag.on { border-color: var(--teal); border-style: solid; color: var(--teal); background: rgba(93,202,165,0.06); }
+
+/* ── CHANNEL LIST ──────────────────────────────── */
+.channel-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.ch-row {
+  display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+  background: var(--bg2); border-left: 3px solid var(--border);
+  transition: border-color 0.2s;
+}
+.ch-row.hot { border-left-color: var(--purple); }
+.ch-icon {
+  width: 38px; height: 38px; flex-shrink: 0; border: 1.5px dashed var(--border2);
+  display: flex; align-items: center; justify-content: center; font-size: 18px; color: var(--muted);
+}
+.ch-row.hot .ch-icon { border-color: var(--purple); color: var(--purple); }
+.ch-name { font-family: var(--display); font-size: 13px; font-weight: 600; color: var(--text); }
+.ch-why { font-size: 11px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+.ch-badge {
+  margin-left: auto; font-size: 10px; color: var(--purple); border: 1px dashed var(--purple);
+  padding: 3px 10px; flex-shrink: 0; letter-spacing: 1px;
+}
+
+/* ── CONTENT TABS ──────────────────────────────── */
+.content-tabs { display: flex; gap: 0; border-bottom: 1px dashed var(--border); margin-bottom: 20px; }
+.ctab {
+  font-size: 12px; padding: 9px 20px; cursor: pointer; letter-spacing: 1px;
+  color: var(--muted); border-bottom: 2px solid transparent; background: none;
+  border-top: none; border-left: none; border-right: none; transition: all 0.15s;
+}
+.ctab.on { color: var(--purple); border-bottom-color: var(--purple); }
+.content-box {
+  background: var(--bg2); border: 1px dashed var(--border);
+  padding: 18px; font-size: 12px; color: var(--muted); line-height: 1.9;
+  margin-bottom: 12px; min-height: 120px;
+}
+.copy-btn {
+  display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--teal);
+  background: none; border: none; letter-spacing: 1px; padding: 0; transition: opacity 0.2s;
+}
+.copy-btn:hover { opacity: 0.7; }
+
+/* ── ARTIFACT PREVIEW ──────────────────────────── */
+.artifact-wrap { border: 1.5px dashed var(--purple); background: var(--bg2); overflow: hidden; margin-bottom: 20px; }
+.artifact-head {
+  background: #1a0f2e; padding: 20px 24px;
+  display: flex; justify-content: space-between; align-items: center;
+  border-bottom: 1px dashed rgba(192,132,252,0.2);
+}
+.artifact-proj { font-family: var(--display); font-size: 14px; font-weight: 700; color: var(--purple); }
+.artifact-date { font-size: 10px; color: var(--muted2); margin-top: 4px; letter-spacing: 1px; }
+.artifact-rocket { font-size: 30px; color: var(--purple3); }
+.artifact-body { display: grid; grid-template-columns: 1fr 1fr; }
+.artifact-section { padding: 16px 20px; border-right: 1px dashed var(--border); border-bottom: 1px dashed var(--border); }
+.artifact-section:nth-child(even) { border-right: none; }
+.artifact-section:nth-child(3), .artifact-section:nth-child(4) { border-bottom: none; }
+.art-sec-title { font-size: 9px; color: var(--muted2); letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; }
+.art-item { font-size: 12px; color: var(--muted); display: flex; align-items: center; gap: 8px; padding: 3px 0; }
+.art-item span { color: var(--purple3); font-size: 14px; }
+
+/* ── DOWNLOAD ROW ──────────────────────────────── */
+.dl-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.dl-btn {
+  flex: 1; min-width: 120px; padding: 11px; font-size: 12px; letter-spacing: 1px;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  background: var(--bg2); border: 1px dashed var(--border2); color: var(--muted);
+  transition: all 0.15s;
+}
+.dl-btn:hover { border-color: var(--purple); color: var(--purple); }
+.dl-btn.primary { background: var(--purple); border-color: var(--purple); border-style: solid; color: #0a0a0c; font-weight: 700; }
+.dl-btn.primary:hover { background: var(--purple2); border-color: var(--purple2); }
+
+/* ── STICKY NAV ────────────────────────────────── */
+.wiz-nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 32px; background: rgba(10,10,12,0.95); backdrop-filter: blur(8px);
+  border-top: 1px dashed var(--border);
+}
+.back-btn {
+  font-size: 12px; color: var(--muted); background: none; border: none;
+  display: flex; align-items: center; gap: 6px; letter-spacing: 1px;
+  transition: color 0.2s;
+}
+.back-btn:hover { color: var(--purple); }
+.next-btn {
+  font-family: var(--display); font-size: 13px; font-weight: 700;
+  background: var(--purple); color: #0a0a0c; border: none;
+  padding: 11px 28px; letter-spacing: -0.3px; transition: background 0.2s;
+  display: flex; align-items: center; gap: 8px;
+}
+.next-btn:hover { background: var(--purple2); }
+
+/* ── GITHUB TIPS ───────────────────────────────── */
+.github-tips { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+.github-tip {
+  display: flex; align-items: flex-start; gap: 14px; padding: 14px 16px;
+  background: var(--bg2); border: 1px solid var(--border);
+}
+.tip-num { font-size: 10px; color: var(--purple); letter-spacing: 1px; flex-shrink: 0; padding-top: 2px; }
+.tip-text { font-size: 12px; color: var(--muted); line-height: 1.6; }
+.tip-text strong { color: var(--text); font-weight: 400; font-family: var(--display); }
+
+/* ── LIGHT MODE ────────────────────────────────── */
+body.light {
+  --bg: #f5f4f0; --bg2: #eeede8; --bg3: #e5e4df;
+  --border: #d0cfc8; --border2: #bfbeb6;
+  --text: #1a1a22; --muted: #6a6a78; --muted2: #a0a0b0;
+  --purple: #7c3aed; --purple2: #6d28d9; --purple3: #4f46e5;
+}
+body.light .topbar { background: rgba(245,244,240,0.95); }
+body.light .wiz-nav { background: rgba(245,244,240,0.95); }
+body.light .stars { opacity: 0.2; }
+
+/* ── RESPONSIVE ────────────────────────────────── */
+@media (max-width: 600px) {
+  .topbar { padding: 12px 16px; }
+  .wizard-body { padding: 28px 16px 100px; }
+  .wiz-nav { padding: 12px 16px; }
+  .artifact-body { grid-template-columns: 1fr; }
+  .artifact-section:nth-child(even) { border-right: none; }
+  .artifact-section:nth-child(3) { border-bottom: 1px dashed var(--border); }
+  .step-tab { font-size: 9px; min-width: 60px; }
+}
+</style>
+</head>
+<body>
+
+<!-- STARS -->
+<div class="stars" id="stars"></div>
+
+<!-- ══════════════════════════════════════════════
+     INTRO PAGE
+══════════════════════════════════════════════ -->
+<div id="page-intro" class="page active">
+
+  <!-- Scene 1: The Builder -->
+  <div class="intro-scene active" id="isc0">
+    <div class="scene-tag">// 01 &nbsp; the builder</div>
+    <div class="scene-svg-wrap">
+      <svg width="260" height="190" viewBox="0 0 260 190" style="animation:floatSlow 5s ease-in-out infinite">
+        <rect x="40" y="18" width="180" height="114" rx="5" fill="#13131a" stroke="#2a2a34" stroke-width="1.5"/>
+        <rect x="50" y="30" width="160" height="92" rx="3" fill="#0d0d10"/>
+        <circle cx="62" cy="23" r="3.5" fill="#E24B4A"/>
+        <circle cx="75" cy="23" r="3.5" fill="#EF9F27"/>
+        <circle cx="88" cy="23" r="3.5" fill="#5DCAA5"/>
+        <text x="60" y="50" font-family="Space Mono,monospace" font-size="8" fill="#2a2a3a">~/projects/my-app</text>
+        <text x="60" y="64" font-family="Space Mono,monospace" font-size="8" fill="#5DCAA5">$ git push origin main</text>
+        <text x="60" y="77" font-family="Space Mono,monospace" font-size="8" fill="#2a2a3a">Writing objects: 100%</text>
+        <text x="60" y="90" font-family="Space Mono,monospace" font-size="8" fill="#c084fc">Branch main updated.</text>
+        <text x="60" y="106" font-family="Space Mono,monospace" font-size="8" fill="#5DCAA5">$ <tspan fill="#c084fc" style="animation:blink 1s step-end infinite">█</tspan></text>
+        <rect x="95" y="132" width="70" height="9" rx="2" fill="#1a1a22"/>
+        <rect x="75" y="141" width="110" height="5" rx="2" fill="#141418"/>
+        <circle cx="16" cy="56" r="1.5" fill="#c084fc" style="animation:starTwinkle 3s .2s infinite"/>
+        <circle cx="246" cy="40" r="1.5" fill="#5DCAA5" style="animation:starTwinkle 3s .9s infinite"/>
+        <circle cx="242" cy="148" r="1" fill="#7F77DD" style="animation:starTwinkle 3s 1.5s infinite"/>
+        <circle cx="12" cy="140" r="1" fill="#5DCAA5" style="animation:starTwinkle 3s .6s infinite"/>
+      </svg>
+    </div>
+    <div class="intro-title show" id="it0">you built something.</div>
+    <div class="intro-sub"><span class="typed" id="is0"></span><span class="cur" id="ic0"></span></div>
+  </div>
+
+  <!-- Scene 2: Market Scan -->
+  <div class="intro-scene" id="isc1">
+    <div class="scene-tag">// 02 &nbsp; scanning the market</div>
+    <div class="scene-svg-wrap">
+      <svg width="270" height="200" viewBox="0 0 270 200" style="animation:floatSlow 5s .5s ease-in-out infinite">
+        <circle cx="135" cy="98" r="74" fill="none" stroke="#16161e" stroke-width="1"/>
+        <circle cx="135" cy="98" r="54" fill="none" stroke="#1e1e28" stroke-width="1" stroke-dasharray="4,3"/>
+        <circle cx="135" cy="98" r="34" fill="none" stroke="#252532" stroke-width="1" stroke-dasharray="3,3"/>
+        <line x1="135" y1="24" x2="135" y2="172" stroke="#141420" stroke-width="0.5"/>
+        <line x1="61" y1="98" x2="209" y2="98" stroke="#141420" stroke-width="0.5"/>
+        <rect x="50" y="26" width="60" height="26" rx="3" fill="#1a0f2e" stroke="#534AB7" stroke-width="1"/>
+        <text x="80" y="43" font-family="Space Mono,monospace" font-size="8" fill="#c084fc" text-anchor="middle">Linear</text>
+        <rect x="164" y="46" width="60" height="26" rx="3" fill="#0d1f1a" stroke="#0F6E56" stroke-width="1"/>
+        <text x="194" y="63" font-family="Space Mono,monospace" font-size="8" fill="#5DCAA5" text-anchor="middle">Notion</text>
+        <rect x="164" y="136" width="60" height="26" rx="3" fill="#1f1200" stroke="#854F0B" stroke-width="1"/>
+        <text x="194" y="153" font-family="Space Mono,monospace" font-size="8" fill="#EF9F27" text-anchor="middle">Trello</text>
+        <rect x="48" y="136" width="60" height="26" rx="3" fill="#1a1228" stroke="#993556" stroke-width="1"/>
+        <text x="78" y="153" font-family="Space Mono,monospace" font-size="8" fill="#ED93B1" text-anchor="middle">Asana</text>
+        <circle cx="135" cy="98" r="11" fill="#1a0f2e" stroke="#c084fc" stroke-width="1.5"/>
+        <text x="135" y="102" font-family="Space Mono,monospace" font-size="7" fill="#c084fc" text-anchor="middle">YOU</text>
+        <line x1="135" y1="98" x2="80" y2="39" stroke="#534AB7" stroke-width="0.5" stroke-dasharray="3,2" opacity="0.5"/>
+        <line x1="135" y1="98" x2="194" y2="59" stroke="#0F6E56" stroke-width="0.5" stroke-dasharray="3,2" opacity="0.5"/>
+        <line x1="135" y1="98" x2="194" y2="149" stroke="#854F0B" stroke-width="0.5" stroke-dasharray="3,2" opacity="0.5"/>
+        <line x1="135" y1="98" x2="78" y2="149" stroke="#993556" stroke-width="0.5" stroke-dasharray="3,2" opacity="0.5"/>
+        <circle cx="135" cy="98" r="74" fill="none" stroke="#c084fc" stroke-width="0.5" stroke-dasharray="2,8" opacity="0.25" style="animation:scanPulse 3s ease-in-out infinite"/>
+      </svg>
+    </div>
+    <div class="intro-title" id="it1">scanning the landscape.</div>
+    <div class="intro-sub"><span class="typed" id="is1"></span><span class="cur" id="ic1"></span></div>
+  </div>
+
+  <!-- Scene 3: Rocket Launch -->
+  <div class="intro-scene" id="isc2">
+    <div class="scene-tag">// 03 &nbsp; ignition</div>
+    <div class="scene-svg-wrap">
+      <svg width="220" height="210" viewBox="0 0 220 210">
+        <circle cx="110" cy="192" r="1" fill="#c084fc">
+          <animate attributeName="r" from="6" to="40" dur="1.8s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" from="0.5" to="0" dur="1.8s" repeatCount="indefinite"/>
+        </circle>
+        <circle cx="110" cy="192" r="1" fill="#7F77DD">
+          <animate attributeName="r" from="6" to="40" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
+          <animate attributeName="opacity" from="0.4" to="0" dur="1.8s" begin="0.6s" repeatCount="indefinite"/>
+        </circle>
+        <g style="animation:rocketHover 3.2s ease-in-out infinite; transform-origin:110px 115px;">
+          <path d="M110 22 C110 22 86 64 86 104 L86 154 L110 142 L134 154 L134 104 C134 64 110 22 110 22 Z" fill="#1a0f2e" stroke="#c084fc" stroke-width="1.5"/>
+          <path d="M110 22 C110 22 94 62 94 100 L126 100 C126 62 110 22 110 22 Z" fill="#261540"/>
+          <circle cx="110" cy="92" r="14" fill="#0d0d14" stroke="#5DCAA5" stroke-width="1.5"/>
+          <circle cx="110" cy="92" r="8" fill="#0a2a1e" stroke="#5DCAA5" stroke-width="1"/>
+          <circle cx="110" cy="92" r="3.5" fill="#5DCAA5" opacity="0.7"/>
+          <path d="M86 104 C86 104 68 114 64 132 C64 132 74 130 86 124 Z" fill="#7F77DD" stroke="#534AB7" stroke-width="1"/>
+          <path d="M134 104 C134 104 152 114 156 132 C156 132 146 130 134 124 Z" fill="#7F77DD" stroke="#534AB7" stroke-width="1"/>
+          <rect x="100" y="136" width="20" height="18" rx="2" fill="#13131a" stroke="#2a2a34" stroke-width="1"/>
+          <g style="transform-origin:110px 154px; animation:flameFlicker1 0.24s ease-in-out infinite;">
+            <path d="M100 154 Q105 180 110 187 Q115 180 120 154 Z" fill="#EF9F27"/>
+          </g>
+          <g style="transform-origin:110px 154px; animation:flameFlicker2 0.17s ease-in-out infinite;">
+            <path d="M103 154 Q107 172 110 177 Q113 172 117 154 Z" fill="#FAC775"/>
+          </g>
+          <path d="M107 154 Q109 163 110 165 Q111 163 113 154 Z" fill="white" opacity="0.75"/>
+        </g>
+        <circle cx="28" cy="42" r="1.5" fill="#c084fc" style="animation:starTwinkle 2.5s 0s infinite"/>
+        <circle cx="196" cy="28" r="1.5" fill="#5DCAA5" style="animation:starTwinkle 2.5s .5s infinite"/>
+        <circle cx="200" cy="96" r="1" fill="#7F77DD" style="animation:starTwinkle 2.5s 1s infinite"/>
+        <circle cx="18" cy="110" r="1" fill="#5DCAA5" style="animation:starTwinkle 2.5s .7s infinite"/>
+        <circle cx="190" cy="160" r="1.5" fill="#c084fc" style="animation:starTwinkle 2.5s 1.3s infinite"/>
+        <circle cx="36" cy="162" r="1" fill="#EF9F27" style="animation:starTwinkle 2.5s .3s infinite"/>
+      </svg>
+    </div>
+    <div class="intro-title" id="it2">LaunchPad AI</div>
+    <div class="intro-sub"><span class="typed" id="is2"></span><span class="cur" id="ic2"></span></div>
+  </div>
+
+  <!-- Scene 4: Inbound -->
+  <div class="intro-scene" id="isc3">
+    <div class="scene-tag">// 04 &nbsp; the world responds</div>
+    <div class="scene-svg-wrap">
+      <svg width="280" height="205" viewBox="0 0 280 205" style="animation:floatSlow 5s 1s ease-in-out infinite">
+        <circle cx="140" cy="102" r="34" fill="#1a0f2e" stroke="#c084fc" stroke-width="1.5" stroke-dasharray="4,2"/>
+        <text x="140" y="98" font-family="Space Mono,monospace" font-size="8" fill="#c084fc" text-anchor="middle">your</text>
+        <text x="140" y="110" font-family="Space Mono,monospace" font-size="8" fill="#c084fc" text-anchor="middle">product</text>
+        <g style="animation:notifPop 0.6s 0.1s ease both">
+          <rect x="174" y="38" width="80" height="32" rx="4" fill="#13131a" stroke="#5DCAA5" stroke-width="1"/>
+          <text x="214" y="53" font-family="Space Mono,monospace" font-size="8" fill="#5DCAA5" text-anchor="middle">twitter</text>
+          <text x="214" y="64" font-family="Space Mono,monospace" font-size="7" fill="#2e2e3a" text-anchor="middle">+14 replies</text>
+          <line x1="174" y1="54" x2="168" y2="82" stroke="#5DCAA5" stroke-width="0.5" stroke-dasharray="3,2"/>
+        </g>
+        <g style="animation:notifPop 0.6s 0.4s ease both">
+          <rect x="28" y="34" width="80" height="32" rx="4" fill="#13131a" stroke="#EF9F27" stroke-width="1"/>
+          <text x="68" y="49" font-family="Space Mono,monospace" font-size="8" fill="#EF9F27" text-anchor="middle">reddit</text>
+          <text x="68" y="60" font-family="Space Mono,monospace" font-size="7" fill="#2e2e3a" text-anchor="middle">+28 upvotes</text>
+          <line x1="108" y1="50" x2="115" y2="80" stroke="#EF9F27" stroke-width="0.5" stroke-dasharray="3,2"/>
+        </g>
+        <g style="animation:notifPop 0.6s 0.7s ease both">
+          <rect x="28" y="148" width="80" height="32" rx="4" fill="#13131a" stroke="#7F77DD" stroke-width="1"/>
+          <text x="68" y="162" font-family="Space Mono,monospace" font-size="7" fill="#7F77DD" text-anchor="middle">product hunt</text>
+          <text x="68" y="173" font-family="Space Mono,monospace" font-size="7" fill="#2e2e3a" text-anchor="middle">+62 upvotes</text>
+          <line x1="108" y1="164" x2="115" y2="126" stroke="#7F77DD" stroke-width="0.5" stroke-dasharray="3,2"/>
+        </g>
+        <g style="animation:notifPop 0.6s 1s ease both">
+          <rect x="174" y="148" width="80" height="32" rx="4" fill="#13131a" stroke="#D4537E" stroke-width="1"/>
+          <text x="214" y="162" font-family="Space Mono,monospace" font-size="8" fill="#D4537E" text-anchor="middle">discord</text>
+          <text x="214" y="173" font-family="Space Mono,monospace" font-size="7" fill="#2e2e3a" text-anchor="middle">+7 messages</text>
+          <line x1="174" y1="164" x2="168" y2="126" stroke="#D4537E" stroke-width="0.5" stroke-dasharray="3,2"/>
+        </g>
+      </svg>
+    </div>
+    <div class="intro-title" id="it3">the world responds.</div>
+    <div class="intro-sub"><span class="typed" id="is3"></span><span class="cur" id="ic3"></span></div>
+  </div>
+
+  <!-- Scene 5: Artifact -->
+  <div class="intro-scene" id="isc4">
+    <div class="scene-tag">// 05 &nbsp; your launch plan</div>
+    <div class="scene-svg-wrap">
+      <svg width="270" height="200" viewBox="0 0 270 200" style="animation:floatSlow 5s .8s ease-in-out infinite">
+        <g style="animation:docReveal 0.8s 0.1s ease both">
+          <rect x="55" y="12" width="160" height="158" rx="5" fill="#13131a" stroke="#c084fc" stroke-width="1.5" stroke-dasharray="4,2"/>
+          <rect x="55" y="12" width="160" height="36" rx="5" fill="#1a0f2e"/>
+          <rect x="55" y="36" width="160" height="12" fill="#1a0f2e"/>
+          <text x="135" y="33" font-family="Space Mono,monospace" font-size="9" font-weight="700" fill="#c084fc" text-anchor="middle">launch_strategy.pdf</text>
+          <text x="135" y="51" font-family="Space Mono,monospace" font-size="7" fill="#3a2060" text-anchor="middle">generated by LaunchPad AI</text>
+          <line x1="67" y1="60" x2="203" y2="60" stroke="#1e1e2a" stroke-width="1"/>
+          <text x="67" y="74" font-family="Space Mono,monospace" font-size="7" fill="#2e2e46">// channels</text>
+          <text x="67" y="86" font-family="Space Mono,monospace" font-size="8" fill="#5DCAA5">01  twitter / X</text>
+          <text x="67" y="98" font-family="Space Mono,monospace" font-size="8" fill="#5DCAA5">02  r/SideProject</text>
+          <text x="67" y="110" font-family="Space Mono,monospace" font-size="8" fill="#5DCAA5">03  product hunt</text>
+          <line x1="67" y1="118" x2="203" y2="118" stroke="#1e1e2a" stroke-width="1"/>
+          <text x="67" y="132" font-family="Space Mono,monospace" font-size="7" fill="#2e2e46">// audience</text>
+          <text x="67" y="144" font-family="Space Mono,monospace" font-size="8" fill="#7F77DD">solo founders · indie hackers</text>
+          <text x="67" y="156" font-family="Space Mono,monospace" font-size="7" fill="#2e2e46">// angle: lightweight, no bloat</text>
+          <polyline points="186,152 196,163 214,140" fill="none" stroke="#5DCAA5" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="40" stroke-dashoffset="40" style="animation:checkDraw 0.5s 0.9s ease forwards"/>
+          <circle cx="200" cy="154" r="16" fill="none" stroke="#5DCAA5" stroke-width="1" opacity="0.25"/>
+        </g>
+        <circle cx="22" cy="36" r="1.5" fill="#c084fc" style="animation:starTwinkle 3s 0s infinite"/>
+        <circle cx="248" cy="24" r="1.5" fill="#5DCAA5" style="animation:starTwinkle 3s .7s infinite"/>
+        <circle cx="250" cy="168" r="1" fill="#7F77DD" style="animation:starTwinkle 3s 1.2s infinite"/>
+        <circle cx="18" cy="166" r="1" fill="#EF9F27" style="animation:starTwinkle 3s .4s infinite"/>
+      </svg>
+    </div>
+    <div class="intro-title" id="it4">your plan is ready.</div>
+    <div class="intro-sub"><span class="typed" id="is4"></span><span class="cur" id="ic4"></span></div>
+    <button onclick="enterWizard()" style="
+      font-family:'Syne',sans-serif; font-size:14px; font-weight:700;
+      background:var(--purple); color:#0a0a0c; border:none;
+      padding:13px 32px; margin-top:20px; cursor:pointer; letter-spacing:-0.3px;
+      transition:background 0.2s;
+    " onmouseover="this.style.background='#a855f7'" onmouseout="this.style.background='#c084fc'">
+      enter launchpad ↗
+    </button>
+  </div>
+
+  <!-- Intro Controls -->
+  <div class="intro-controls" id="introControls">
+    <div class="intro-dots">
+      <div class="idot on" id="id0" onclick="skipTo(0)"></div>
+      <div class="idot" id="id1" onclick="skipTo(1)"></div>
+      <div class="idot" id="id2" onclick="skipTo(2)"></div>
+      <div class="idot" id="id3" onclick="skipTo(3)"></div>
+      <div class="idot" id="id4" onclick="skipTo(4)"></div>
+    </div>
+    <button class="skip-link" id="skipBtn" onclick="skipTo(4)">skip intro</button>
+    <div class="pause-label" id="pauseLabel">// paused</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     WIZARD PAGE
+══════════════════════════════════════════════ -->
+<div id="page-wizard" class="page">
+  <div class="topbar">
+    <div class="logo"><div class="logo-dot"></div>LaunchPad AI</div>
+    <button class="theme-btn" onclick="toggleTheme()" id="themeBtn">[light mode]</button>
+  </div>
+
+  <div class="step-tabs" id="stepTabs">
+    <button class="step-tab active" id="st0" onclick="goWiz(0)"><span class="step-num">01</span>input</button>
+    <button class="step-tab" id="st1" onclick="goWiz(1)"><span class="step-num">02</span>research</button>
+    <button class="step-tab" id="st2" onclick="goWiz(2)"><span class="step-num">03</span>audience</button>
+    <button class="step-tab" id="st3" onclick="goWiz(3)"><span class="step-num">04</span>strategy</button>
+    <button class="step-tab" id="st4" onclick="goWiz(4)"><span class="step-num">05</span>content</button>
+    <button class="step-tab" id="st5" onclick="goWiz(5)"><span class="step-num">06</span>artifact</button>
+  </div>
+
+  <div class="wizard-body">
+
+    <!-- Page 0: Input -->
+    <div class="wiz-page active" id="wp0">
+      <div class="page-hero">
+        <div class="hero-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="1.5">
+            <rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/>
+            <circle cx="7" cy="6" r="1" fill="#E24B4A"/><circle cx="11" cy="6" r="1" fill="#EF9F27"/><circle cx="15" cy="6" r="1" fill="#5DCAA5"/>
+            <line x1="7" y1="14" x2="17" y2="14" stroke-width="1"/><line x1="7" y1="18" x2="13" y2="18" stroke-width="1"/>
+          </svg>
+        </div>
+        <div>
+          <div class="hero-title">tell us what you built</div>
+          <div class="hero-sub">// paste your repo + describe the thing</div>
+        </div>
+      </div>
+      <div class="field">
+        <label class="field-label">// github repo url</label>
+        <input type="text" placeholder="https://github.com/you/your-project"/>
+      </div>
+      <div class="field">
+        <label class="field-label">// README or pitch — what does it do?</label>
+        <textarea rows="6" placeholder="// describe your project, the problem it solves, who it's for...&#10;// or paste your README directly"></textarea>
+      </div>
+    </div>
+
+    <!-- Page 1: Research -->
+    <div class="wiz-page" id="wp1">
+      <div class="page-hero">
+        <div class="hero-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="1.5">
+            <circle cx="9" cy="9" r="6"/><circle cx="15" cy="9" r="6"/><circle cx="12" cy="15" r="6"/>
+            <circle cx="12" cy="10" r="2" fill="#c084fc" stroke="none"/>
+          </svg>
+        </div>
+        <div>
+          <div class="hero-title">competitive landscape</div>
+          <div class="hero-sub">// scanning the web for similar tools...</div>
+        </div>
+      </div>
+      <div class="comp-grid">
+        <div class="comp-card">
+          <div class="comp-name">Linear</div>
+          <div class="comp-desc">Fast keyboard-first tracker for engineering teams. Polished but heavy.</div>
+          <span class="comp-tag">enterprise focus</span>
+        </div>
+        <div class="comp-card">
+          <div class="comp-name">Notion</div>
+          <div class="comp-desc">All-in-one workspace — docs, databases, tasks. Bloated for solo devs.</div>
+          <span class="comp-tag">feature bloat</span>
+        </div>
+        <div class="comp-card">
+          <div class="comp-name">Trello</div>
+          <div class="comp-desc">Visual kanban boards. Simple but too shallow for serious hackers.</div>
+          <span class="comp-tag">limited depth</span>
+        </div>
+      </div>
+      <div class="angle-box">
+        <div class="corner-b"></div>
+        <div class="angle-label">// your angle — edit if needed</div>
+        <input class="angle-input" type="text" value="lightweight PM for solo founders — no config, no bloat, ships in 2 min"/>
+      </div>
+    </div>
+
+    <!-- Page 2: Audience -->
+    <div class="wiz-page" id="wp2">
+      <div class="page-hero">
+        <div class="hero-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="1.5">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20 Q4 14 12 14 Q20 14 20 20" fill="none"/>
+            <circle cx="12" cy="8" r="1.5" fill="#5DCAA5" stroke="none"/>
+          </svg>
+        </div>
+        <div>
+          <div class="hero-title">who is this for?</div>
+          <div class="hero-sub">// pick your targets — override anytime</div>
+        </div>
+      </div>
+      <div class="tag-section">
+        <span class="tag-section-label">// demographic</span>
+        <div class="tag-cloud" id="demoTags">
+          <span class="tag on" onclick="toggleTag(this)">solo founders</span>
+          <span class="tag on" onclick="toggleTag(this)">indie hackers</span>
+          <span class="tag" onclick="toggleTag(this)">design teams</span>
+          <span class="tag" onclick="toggleTag(this)">remote teams</span>
+          <span class="tag" onclick="toggleTag(this)">freelancers</span>
+          <span class="tag" onclick="toggleTag(this)">startup CTOs</span>
+          <span class="tag" onclick="toggleTag(this)">open source devs</span>
+          <span class="tag" onclick="toggleTag(this)">students</span>
+        </div>
+      </div>
+      <div class="tag-section">
+        <span class="tag-section-label">// messaging tone</span>
+        <div class="tag-cloud">
+          <span class="tag on" onclick="toggleTag(this)">raw / technical</span>
+          <span class="tag" onclick="toggleTag(this)">conversational</span>
+          <span class="tag" onclick="toggleTag(this)">bold</span>
+          <span class="tag" onclick="toggleTag(this)">minimal</span>
+          <span class="tag" onclick="toggleTag(this)">playful</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page 3: Strategy -->
+    <div class="wiz-page" id="wp3">
+      <div class="page-hero">
+        <div class="hero-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="1.5">
+            <polyline points="3,17 8,12 13,14 21,6"/><line x1="3" y1="21" x2="21" y2="21"/>
+            <circle cx="21" cy="6" r="1.5" fill="#c084fc" stroke="none"/>
+          </svg>
+        </div>
+        <div>
+          <div class="hero-title">your launch strategy</div>
+          <div class="hero-sub">// where to spend your energy first</div>
+        </div>
+      </div>
+      <div class="channel-list">
+        <div class="ch-row hot">
+          <div class="ch-icon">𝕏</div>
+          <div>
+            <div class="ch-name">Twitter / X</div>
+            <div class="ch-why">build-in-public works here. indie hackers are watching. post threads, not ads.</div>
+          </div>
+          <span class="ch-badge">#1</span>
+        </div>
+        <div class="ch-row hot">
+          <div class="ch-icon" style="font-size:14px; color:#EF9F27; border-color:#EF9F27">r/</div>
+          <div>
+            <div class="ch-name">r/SideProject + r/indiehackers</div>
+            <div class="ch-why">exactly your people. they love raw, honest "I built this" posts.</div>
+          </div>
+          <span class="ch-badge">#2</span>
+        </div>
+        <div class="ch-row hot">
+          <div class="ch-icon" style="font-size:11px; color:#EF9F27; border-color:#EF9F27; letter-spacing:-1px">PH</div>
+          <div>
+            <div class="ch-name">Product Hunt</div>
+            <div class="ch-why">launch tuesday–thursday. prepare assets, hunter intro, and comments early.</div>
+          </div>
+          <span class="ch-badge">#3</span>
+        </div>
+        <div class="ch-row">
+          <div class="ch-icon" style="font-size:13px">GH</div>
+          <div>
+            <div class="ch-name">GitHub README polish</div>
+            <div class="ch-why">add badges, keywords, discord link. organic traffic from GitHub explore.</div>
+          </div>
+        </div>
+        <div class="ch-row">
+          <div class="ch-icon" style="font-size:13px; color:#7289DA; border-color:#7289DA">DC</div>
+          <div>
+            <div class="ch-name">Discord servers</div>
+            <div class="ch-why">find 3–5 hacker/founder servers. share genuinely, not spamming.</div>
+          </div>
+        </div>
+      </div>
+      <div class="github-tips">
+        <div class="github-tip">
+          <span class="tip-num">→ 01</span>
+          <div class="tip-text"><strong>README keywords</strong> — GitHub search indexes READMEs heavily. Add descriptive terms your target users actually search for.</div>
+        </div>
+        <div class="github-tip">
+          <span class="tip-num">→ 02</span>
+          <div class="tip-text"><strong>Badges + shields</strong> — version, license, last commit. Signals an active, serious project. Takes 10 minutes.</div>
+        </div>
+        <div class="github-tip">
+          <span class="tip-num">→ 03</span>
+          <div class="tip-text"><strong>GitHub Discussions</strong> — enable it. Becomes your community hub. Cross-link from your Twitter and Product Hunt.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Page 4: Content -->
+    <div class="wiz-page" id="wp4">
+      <div class="page-hero">
+        <div class="hero-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="1.5">
+            <rect x="3" y="3" width="8" height="10" rx="1"/><rect x="13" y="3" width="8" height="10" rx="1"/>
+            <line x1="3" y1="17" x2="21" y2="17"/><line x1="3" y1="20" x2="16" y2="20"/>
+          </svg>
+        </div>
+        <div>
+          <div class="hero-title">content, ready to ship</div>
+          <div class="hero-sub">// tailored per platform — copy and paste</div>
+        </div>
+      </div>
+      <div class="content-tabs">
+        <button class="ctab on" onclick="switchCtab(this,'ct0')">twitter</button>
+        <button class="ctab" onclick="switchCtab(this,'ct1')">instagram</button>
+        <button class="ctab" onclick="switchCtab(this,'ct2')">reddit</button>
+        <button class="ctab" onclick="switchCtab(this,'ct3')">discord</button>
+      </div>
+      <div id="ct0" class="content-box">built a PM tool for solo founders who are sick of bloated software.<br><br>no setup. no onboarding. shipping in 2 minutes.<br><br>thread on what makes it different 👇<br><br>1/ most PM tools were made for 20-person teams. this one is made for one.<br>2/ zero config — open it and start.<br>3/ it stays completely out of your way.<br><br>try it free → [link] &nbsp; #buildinpublic #indiehacker #productivity</div>
+      <div id="ct1" class="content-box" style="display:none">the PM tool that finally gets solo founders<br><br>you don't need jira. you don't need notion.<br>you need something that works in 60 seconds.<br><br>drop a rocket if you've ever rage-quit a project management tool<br><br>link in bio</div>
+      <div id="ct2" class="content-box" style="display:none"><strong style="color:var(--text)">Show r/SideProject: built a PM tool for solo founders — brutal feedback welcome</strong><br><br>been frustrated with every PM tool feeling like it was built for a 50-person company. spent 3 weeks building something for just me (and people like me).<br><br>no setup. no onboarding. works in 2 minutes.<br><br>would love genuinely honest feedback from this community before a bigger launch.</div>
+      <div id="ct3" class="content-box" style="display:none">hey everyone — just shipped something I've been building for a few weeks<br><br>it's a PM tool built specifically for solo founders. no bloat, no setup, just open and start. ships in 2 minutes.<br><br>would love any feedback from folks here → [link]</div>
+      <button class="copy-btn" onclick="copyContent()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        copy to clipboard
+      </button>
+    </div>
+
+    <!-- Page 5: Artifact -->
+    <div class="wiz-page" id="wp5">
+      <div class="page-hero">
+        <div class="hero-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#c084fc" stroke-width="1.5">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
+            <line x1="12" y1="13" x2="12" y2="19"/><polyline points="9 16 12 19 15 16"/>
+          </svg>
+        </div>
+        <div>
+          <div class="hero-title">your launch plan is ready</div>
+          <div class="hero-sub">// personalized artifact — download + share</div>
+        </div>
+      </div>
+      <div class="artifact-wrap">
+        <div class="artifact-head">
+          <div>
+            <div class="artifact-proj">my_pm_tool — launch_strategy.pdf</div>
+            <div class="artifact-date">// generated by launchpad_ai · may 2026</div>
+          </div>
+          <svg width="32" height="32" viewBox="0 0 32 32" class="artifact-rocket">
+            <path d="M16 2 C16 2 9 12 9 19 L9 26 L16 23 L23 26 L23 19 C23 12 16 2 16 2 Z" fill="#1a0f2e" stroke="#c084fc" stroke-width="1.5"/>
+            <circle cx="16" cy="14" r="3.5" fill="none" stroke="#5DCAA5" stroke-width="1.5"/>
+            <path d="M9 19 L5 24 L9 23 Z" fill="#7F77DD"/>
+            <path d="M23 19 L27 24 L23 23 Z" fill="#7F77DD"/>
+          </svg>
+        </div>
+        <div class="artifact-body">
+          <div class="artifact-section">
+            <div class="art-sec-title">// top channels</div>
+            <div class="art-item"><span>→</span> twitter / X</div>
+            <div class="art-item"><span>→</span> r/SideProject</div>
+            <div class="art-item"><span>→</span> product hunt</div>
+          </div>
+          <div class="artifact-section">
+            <div class="art-sec-title">// audience</div>
+            <div class="art-item"><span>→</span> solo founders</div>
+            <div class="art-item"><span>→</span> indie hackers</div>
+            <div class="art-item"><span>→</span> open source devs</div>
+          </div>
+          <div class="artifact-section">
+            <div class="art-sec-title">// your angle</div>
+            <div class="art-item"><span>→</span> lightweight, no bloat</div>
+            <div class="art-item"><span>→</span> ships in 2 minutes</div>
+          </div>
+          <div class="artifact-section">
+            <div class="art-sec-title">// github moves</div>
+            <div class="art-item"><span>→</span> optimize README</div>
+            <div class="art-item"><span>→</span> badges + community link</div>
+          </div>
+        </div>
+      </div>
+      <div class="dl-row">
+        <button class="dl-btn" onclick="alert('Carousel export coming soon!')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="6" height="10" rx="1"/><rect x="9" y="4" width="6" height="16" rx="1"/><rect x="16" y="7" width="6" height="10" rx="1"/></svg>
+          image carousel
+        </button>
+        <button class="dl-btn primary" onclick="alert('PDF export coming soon!')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          download PDF
+        </button>
+        <button class="dl-btn" onclick="alert('Share link copied!')">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+          share
+        </button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Sticky Nav -->
+  <div class="wiz-nav" id="wizNav">
+    <button class="back-btn" id="backBtn" onclick="goWiz(wizCur-1)">← back</button>
+    <button class="next-btn" id="nextBtn" onclick="goWiz(wizCur+1)">
+      <span id="nextLabel">analyze competitors</span> →
+    </button>
+  </div>
+</div>
+
+<script>
+/* ── STARS ─────────────────────────── */
+(function(){
+  const s = document.getElementById('stars');
+  for(let i=0; i<80; i++){
+    const el = document.createElement('div');
+    el.className = 'star';
+    const size = Math.random()*2+0.5;
+    const peak = (Math.random()*0.6+0.3).toFixed(2);
+    el.style.cssText = `
+      width:${size}px; height:${size}px;
+      left:${Math.random()*100}%; top:${Math.random()*100}%;
+      --d:${(Math.random()*4+2).toFixed(1)}s;
+      --delay:-${(Math.random()*6).toFixed(1)}s;
+      --peak:${peak};
+    `;
+    s.appendChild(el);
+  }
+})();
+
+/* ── INTRO ─────────────────────────── */
+let introCur = 0;
+let introTimer = null;
+let introPaused = false;
+const introTotal = 5;
+const introDuration = 3200;
+const subtexts = [
+  "now let's get it out there.",
+  "find your gap. own your angle.",
+  "your launch engine is ready.",
+  "replies, upvotes, messages — captured.",
+  "download it. share it. launch."
+];
+let typeTimers = [];
+
+function clearTypeTimers(){ typeTimers.forEach(t=>clearTimeout(t)); typeTimers=[]; }
+
+function typeText(id, text, speed){
+  clearTypeTimers();
+  const el = document.getElementById(id);
+  if(!el) return;
+  el.textContent='';
+  let i=0;
+  function tick(){
+    el.textContent = text.slice(0,i);
+    i++;
+    if(i<=text.length) typeTimers.push(setTimeout(tick, speed));
+  }
+  tick();
+}
+
+function showIntroScene(n){
+  document.getElementById('isc'+introCur).classList.remove('active');
+  document.getElementById('id'+introCur).classList.remove('on');
+  const prevTitle = document.getElementById('it'+introCur);
+  if(prevTitle) prevTitle.classList.remove('show');
+
+  introCur = n;
+  const sc = document.getElementById('isc'+introCur);
+  sc.classList.add('active');
+  document.getElementById('id'+introCur).classList.add('on');
+
+  const title = document.getElementById('it'+introCur);
+  if(title){ setTimeout(()=>title.classList.add('show'), 80); }
+  setTimeout(()=>typeText('is'+introCur, subtexts[introCur], 36), 650);
+
+  if(introCur===introTotal-1){
+    document.getElementById('skipBtn').style.display='none';
+  }
+}
+
+function scheduleIntro(){
+  clearTimeout(introTimer);
+  if(introCur < introTotal-1 && !introPaused){
+    introTimer = setTimeout(()=>{ showIntroScene(introCur+1); scheduleIntro(); }, introDuration);
+  }
+}
+
+function skipTo(n){
+  clearTimeout(introTimer);
+  showIntroScene(n);
+  if(n < introTotal-1) scheduleIntro();
+}
+
+function pauseIntro(){
+  introPaused = true;
+  clearTimeout(introTimer);
+  document.getElementById('pauseLabel').classList.add('show');
+}
+
+function resumeIntro(){
+  introPaused = false;
+  document.getElementById('pauseLabel').classList.remove('show');
+  scheduleIntro();
+}
+
+const introPage = document.getElementById('page-intro');
+introPage.addEventListener('mouseenter', pauseIntro);
+introPage.addEventListener('mouseleave', resumeIntro);
+introPage.addEventListener('touchstart', pauseIntro, {passive:true});
+introPage.addEventListener('touchend', resumeIntro, {passive:true});
+introPage.addEventListener('touchcancel', resumeIntro, {passive:true});
+
+/* Kick off */
+document.getElementById('it0').classList.add('show');
+setTimeout(()=>typeText('is0', subtexts[0], 36), 650);
+scheduleIntro();
+
+/* ── WIZARD ────────────────────────── */
+let wizCur = 0;
+const wizTotal = 6;
+const nextLabels = [
+  'analyze competitors','define audience','plan launch','generate content','get artifact','—'
+];
+
+function enterWizard(){
+  document.getElementById('page-intro').classList.remove('active');
+  document.getElementById('introControls').style.display='none';
+  document.getElementById('page-wizard').classList.add('active');
+  updateWizNav();
+}
+
+function goWiz(n){
+  if(n < 0 || n >= wizTotal) return;
+  document.getElementById('wp'+wizCur).classList.remove('active');
+  document.getElementById('st'+wizCur).classList.remove('active');
+  if(n > wizCur) document.getElementById('st'+wizCur).classList.add('done');
+  wizCur = n;
+  document.getElementById('wp'+wizCur).classList.add('active');
+  document.getElementById('st'+wizCur).classList.remove('done');
+  document.getElementById('st'+wizCur).classList.add('active');
+  for(let i=0;i<wizCur;i++) document.getElementById('st'+i).classList.add('done');
+  updateWizNav();
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+function updateWizNav(){
+  const back = document.getElementById('backBtn');
+  const next = document.getElementById('nextBtn');
+  const label = document.getElementById('nextLabel');
+  back.style.visibility = wizCur===0 ? 'hidden' : 'visible';
+  next.style.display = wizCur===wizTotal-1 ? 'none' : 'flex';
+  if(label) label.textContent = nextLabels[wizCur];
+}
+
+function toggleTag(el){ el.classList.toggle('on'); }
+
+function switchCtab(btn, id){
+  document.querySelectorAll('.ctab').forEach(b=>b.classList.remove('on'));
+  btn.classList.add('on');
+  ['ct0','ct1','ct2','ct3'].forEach(t=>{
+    const el = document.getElementById(t);
+    if(el) el.style.display = t===id ? 'block' : 'none';
+  });
+}
+
+function copyContent(){
+  const visible = ['ct0','ct1','ct2','ct3'].find(id=>{
+    const el = document.getElementById(id);
+    return el && el.style.display !== 'none';
+  });
+  if(visible){
+    const text = document.getElementById(visible).innerText;
+    navigator.clipboard.writeText(text).then(()=>{
+      const btn = document.querySelector('.copy-btn');
+      btn.textContent = '✓ copied!';
+      setTimeout(()=>{ btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> copy to clipboard'; }, 2000);
+    });
+  }
+}
+
+let isLight = false;
+function toggleTheme(){
+  isLight = !isLight;
+  document.body.classList.toggle('light', isLight);
+  document.getElementById('themeBtn').textContent = isLight ? '[dark mode]' : '[light mode]';
+}
+</script>
+</body>
+</html>
