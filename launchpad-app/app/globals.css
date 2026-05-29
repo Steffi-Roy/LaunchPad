@@ -1,0 +1,122 @@
+@import "tailwindcss";
+
+:root {
+  --bg:        #0a0a0c;
+  --bg2:       #13131a;
+  --bg3:       #1a1a22;
+  --border:    #2a2a34;
+  --border2:   #3a3a48;
+  --purple:    #c084fc;
+  --purple2:   #a855f7;
+  --purple3:   #7F77DD;
+  --teal:      #5DCAA5;
+  --amber:     #EF9F27;
+  --pink:      #D4537E;
+  --text:      #e8e8f0;
+  --muted:     #9090a8;
+  --muted2:    #60607a;
+  --mono:      'Space Mono', monospace;
+  --display:   'Syne', sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 15px;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+button { cursor: pointer; font-family: var(--mono); }
+input, textarea { font-family: var(--mono); }
+input::placeholder, textarea::placeholder { color: var(--muted2); opacity: 1; }
+
+/* ── SCROLLBAR ─────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* ── STARS ─────────────────────────────────────── */
+.stars {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.star {
+  position: absolute;
+  border-radius: 50%;
+  background: white;
+  animation: starTwinkle var(--d) var(--delay) ease-in-out infinite;
+}
+
+@keyframes starTwinkle {
+  0%, 100% { opacity: 0.08; }
+  50% { opacity: var(--peak); }
+}
+
+/* ── INTRO ANIMATIONS ─────────────────────────── */
+@keyframes sceneIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0; }
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-7px); }
+}
+
+@keyframes rocketHover {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+
+@keyframes flameFlicker1 {
+  0%, 100% { transform: scaleY(1); opacity: .95; }
+  50%      { transform: scaleY(1.4); opacity: 1; }
+}
+
+@keyframes flameFlicker2 {
+  0%, 100% { transform: scaleY(1); }
+  33%      { transform: scaleY(.75); }
+  66%      { transform: scaleY(1.25); }
+}
+
+@keyframes scanPulse {
+  0%, 100% { opacity: .12; }
+  50%       { opacity: .5; }
+}
+
+@keyframes notifPop {
+  0%   { opacity: 0; transform: scale(.75) translateY(8px); }
+  70%  { transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes docReveal {
+  0%   { opacity: 0; transform: translateY(14px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes checkDraw {
+  0%   { stroke-dashoffset: 40; }
+  100% { stroke-dashoffset: 0; }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
