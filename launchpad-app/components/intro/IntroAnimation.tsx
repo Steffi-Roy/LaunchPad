@@ -230,7 +230,6 @@ const SCENE_SVGS = [Scene1Svg, Scene2Svg, Scene3Svg, Scene4Svg, Scene5Svg];
 
 export default function IntroAnimation({ onEnter }: IntroAnimationProps) {
   const [current, setCurrent] = useState(0);
-  const [paused, setPaused] = useState(false);
   const [titleVisible, setTitleVisible] = useState(true);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -261,18 +260,18 @@ export default function IntroAnimation({ onEnter }: IntroAnimationProps) {
   }, []);
 
   useEffect(() => {
-    if (!paused && current < TOTAL_SCENES - 1) {
+    if (current < TOTAL_SCENES - 1) {
       scheduleNext();
     }
     return () => {
       if (timerRef.current) clearTimeout(timerRef.current);
     };
-  }, [current, paused, scheduleNext]);
+  }, [current, scheduleNext]);
 
   const handleSkipTo = (n: number) => {
     if (timerRef.current) clearTimeout(timerRef.current);
     goToScene(n);
-    if (n < TOTAL_SCENES - 1 && !paused) {
+    if (n < TOTAL_SCENES - 1) {
       setTimeout(() => scheduleNext(), 100);
     }
   };
@@ -291,11 +290,6 @@ export default function IntroAnimation({ onEnter }: IntroAnimationProps) {
         padding: '40px 20px 80px',
         position: 'relative',
         zIndex: 1,
-      }}
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => {
-        setPaused(false);
-        if (current < TOTAL_SCENES - 1) scheduleNext();
       }}
     >
       {/* Scene */}
@@ -449,12 +443,6 @@ export default function IntroAnimation({ onEnter }: IntroAnimationProps) {
           </button>
         )}
 
-        {/* Pause indicator */}
-        {paused && (
-          <div style={{ fontSize: '9px', color: 'var(--muted2)', letterSpacing: '2px', fontFamily: 'var(--mono)' }}>
-            // paused
-          </div>
-        )}
       </div>
     </div>
   );
